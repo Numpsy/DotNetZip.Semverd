@@ -169,6 +169,37 @@ namespace Ionic.Zip.Tests.Update
             VerifyZip(zipFileToCreate, password);
         }
 
+        /// <summary>
+        /// Test for modifying a file that uses AES encryption in mode AE-2
+        /// </summary>
+        [TestMethod]
+        public void UpdateZip_ChangeComment_AES()
+        {
+            Directory.SetCurrentDirectory(TopLevelDir);
+            string initialZip = Path.Combine(CurrentDir, "zips\\winzip-ae2.zip");
+            string zipFileToCreate = Path.Combine(TopLevelDir, "UpdateZip_ChangeComment_AES.zip");
+            string newComment = TestUtilities.GenerateRandomAsciiString(32);
+
+            using (var zip = ZipFile.Read(initialZip))
+            {
+                //Check initial comment
+                Assert.AreEqual<string>("InitialComment", zip.Comment);
+
+                // modify the archive comment
+                zip.Comment = newComment;
+                zip.Save(zipFileToCreate);
+            }
+
+            // test extract (and implicitly check CRCs, passwords, etc)
+            VerifyZip(zipFileToCreate, "password");
+
+            // Check for new comment
+            using (var zip2 = ZipFile.Read(zipFileToCreate))
+            {
+                //Check updated comment
+                Assert.AreEqual<string>(newComment, zip2.Comment);
+            }
+        }
 
 
         private void VerifyZip(string zipfile, string password)
